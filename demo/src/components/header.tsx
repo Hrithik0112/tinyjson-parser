@@ -14,6 +14,9 @@ export function Header() {
             <Link href="/docs" className="text-sm text-black/60 hover:text-black transition-colors">
               Docs
             </Link>
+            <Link href="/visualizer" className="text-sm text-black/60 hover:text-black transition-colors">
+              Visualizer
+            </Link>
             <a href="#" className="text-sm text-black/60 hover:text-black transition-colors">
               GitHub
             </a>
