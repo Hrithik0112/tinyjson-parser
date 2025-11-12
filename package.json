@@ -1,0 +1,20 @@
+{
+  "name": "tinyjson-parser",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "**tinyjson-parser** is a tiny, dependency-free JSON parser written in TypeScript",
+ "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "dev": "vitest"
+  },
+  "keywords": ["json", "parser", "typescript", "educational"],
+  "author": "Hrithik Dutta",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.8"
+  }
+}
