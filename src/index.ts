@@ -1,8 +1,9 @@
-export * from "./tokenizer";
-export * from "./parser";
+import { Tokenizer } from "./tokenizer";
+import { Parser } from "./parser";
 
-// Temporary dummy parseJSON function
-export function parseJSON(input: string) {
-  console.log("M0 setup complete. Ready to implement parser!");
-  return {};
+export function parseJSON(input: string): any {
+  const tokenizer = new Tokenizer(input);
+  const tokens = tokenizer.tokenize();
+  const parser = new Parser(tokens);
+  return parser.parse();
 }
