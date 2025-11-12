@@ -1,31 +1,9 @@
-import Image from "next/image";
+import Link from "next/link";
 import { CodeBlock } from '@/components/code-block';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white font-sans relative mx-auto max-w-6xl border border-black/10">
-      {/* Header */}
-      <header className=" relative z-10 bg-white">
-        <div className=" px-6 py-4 border-b border-black/10 ">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Image src="/json.svg" alt="tinyjson-parser" width={32} height={32} />
-              <div className="text-base font-medium text-black">tinyjson-parser</div>
-            </div>
-            <nav className="hidden gap-6 md:flex">
-              <a href="#" className="text-sm text-black/60 hover:text-black transition-colors">
-                Docs
-              </a>
-              <a href="#" className="text-sm text-black/60 hover:text-black transition-colors">
-                GitHub
-              </a>
-            </nav>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="mx-auto max-w-6xl px-6 py-16 md:py-24 relative z-10">
+    <main className="mx-auto max-w-6xl px-6 py-16 md:py-24 relative z-10">
         {/* Hero Section */}
         <div className="mb-20 md:mb-32">
           <h1 className="text-5xl md:text-7xl font-medium text-black mb-6 leading-[1.1] tracking-tight">
@@ -38,12 +16,12 @@ export default function Home() {
             Clean API, zero dependencies, maximum speed.
           </p>
           <div className="flex gap-3">
-            <button className="px-5 py-2.5 bg-black text-white text-sm font-medium font-mono hover:bg-black/90 transition-colors">
+            <Link href="/docs" className="px-5 py-2.5 bg-black text-white text-sm font-medium font-mono hover:bg-black/90 transition-colors">
               Get Started
-            </button>
-            <button className="px-5 py-2.5 border border-black/20 text-black text-sm font-medium font-mono hover:bg-black/5 transition-colors">
+            </Link>
+            <Link href="/docs" className="px-5 py-2.5 border border-black/20 text-black text-sm font-medium font-mono hover:bg-black/5 transition-colors">
               View Docs
-            </button>
+            </Link>
           </div>
         </div>
 
@@ -103,24 +81,6 @@ const json = '{"name": "world"}';
 const result = parseJSON(json);
 // { name: "world" }`}
         />
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-black/10 mt-24 relative z-10 bg-white">
-        <div className="mx-auto max-w-6xl px-6 py-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-black/60">© 2025 tinyjson-parser</p>
-            <div className="flex gap-6">
-              <a href="#" className="text-sm text-black/60 hover:text-black transition-colors">
-                GitHub
-              </a>
-              <a href="#" className="text-sm text-black/60 hover:text-black transition-colors">
-                Twitter
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
-    </div>
+    </main>
   );
 }
