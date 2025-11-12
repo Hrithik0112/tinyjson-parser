@@ -8,8 +8,8 @@ describe("Tokenizer M1 Tests", () => {
     const tokenizer = new Tokenizer(input);
     const tokens = tokenizer.tokenize();
     expect(tokens).toEqual([
-      { type: TokenType.LEFT_BRACE, value: "{" },
-      { type: TokenType.RIGHT_BRACE, value: "}" }
+      { type: TokenType.LEFT_BRACE, value: "{", start: 0, end: 1 },
+      { type: TokenType.RIGHT_BRACE, value: "}", start: 1, end: 2 }
     ]);
   });
 
@@ -18,15 +18,15 @@ describe("Tokenizer M1 Tests", () => {
     const tokenizer = new Tokenizer(input);
     const tokens = tokenizer.tokenize();
     expect(tokens).toEqual([
-      { type: TokenType.LEFT_BRACE, value: "{" },
-      { type: TokenType.STRING, value: "name" },
-      { type: TokenType.COLON, value: ":" },
-      { type: TokenType.STRING, value: "hrithik" },
-      { type: TokenType.COMMA, value: "," },
-      { type: TokenType.STRING, value: "age" },
-      { type: TokenType.COLON, value: ":" },
-      { type: TokenType.NUMBER, value: "23" },
-      { type: TokenType.RIGHT_BRACE, value: "}" }
+      { type: TokenType.LEFT_BRACE, value: "{", start: 0, end: 1 },
+      { type: TokenType.STRING, value: "name", start: 1, end: 7 },
+      { type: TokenType.COLON, value: ":", start: 7, end: 8 },
+      { type: TokenType.STRING, value: "hrithik", start: 8, end: 17 },
+      { type: TokenType.COMMA, value: ",", start: 17, end: 18 },
+      { type: TokenType.STRING, value: "age", start: 18, end: 23 },
+      { type: TokenType.COLON, value: ":", start: 23, end: 24 },
+      { type: TokenType.NUMBER, value: "23", start: 24, end: 26 },
+      { type: TokenType.RIGHT_BRACE, value: "}", start: 26, end: 27 }
     ]);
   });
 
@@ -35,28 +35,28 @@ describe("Tokenizer M1 Tests", () => {
     const tokenizer = new Tokenizer(input);
     const tokens = tokenizer.tokenize();
     expect(tokens).toEqual([
-      { type: TokenType.LEFT_BRACE, value: "{" },
-      { type: TokenType.STRING, value: "quote" },
-      { type: TokenType.COLON, value: ":" },
-      { type: TokenType.STRING, value: 'He said "Hello"' },
-      { type: TokenType.RIGHT_BRACE, value: "}" }
+      { type: TokenType.LEFT_BRACE, value: "{", start: 0, end: 1 },
+      { type: TokenType.STRING, value: "quote", start: 1, end: 8 },
+      { type: TokenType.COLON, value: ":", start: 8, end: 9 },
+      { type: TokenType.STRING, value: 'He said "Hello"', start: 9, end: 28 },
+      { type: TokenType.RIGHT_BRACE, value: "}", start: 28, end: 29 }
     ]);
   });
 
   it("should tokenize numbers including negatives and decimals", () => {
-    const input = '{"num": -3.14, "exp": 1e10}';
+    const input = '{"num":-3.14,"exp":1e10}';
     const tokenizer = new Tokenizer(input);
     const tokens = tokenizer.tokenize();
     expect(tokens).toEqual([
-      { type: TokenType.LEFT_BRACE, value: "{" },
-      { type: TokenType.STRING, value: "num" },
-      { type: TokenType.COLON, value: ":" },
-      { type: TokenType.NUMBER, value: "-3.14" },
-      { type: TokenType.COMMA, value: "," },
-      { type: TokenType.STRING, value: "exp" },
-      { type: TokenType.COLON, value: ":" },
-      { type: TokenType.NUMBER, value: "1e10" },
-      { type: TokenType.RIGHT_BRACE, value: "}" }
+      { type: TokenType.LEFT_BRACE, value: "{", start: 0, end: 1 },
+      { type: TokenType.STRING, value: "num", start: 1, end: 6 },
+      { type: TokenType.COLON, value: ":", start: 6, end: 7 },
+      { type: TokenType.NUMBER, value: "-3.14", start: 7, end: 12 },
+      { type: TokenType.COMMA, value: ",", start: 12, end: 13 },
+      { type: TokenType.STRING, value: "exp", start: 13, end: 18 },
+      { type: TokenType.COLON, value: ":", start: 18, end: 19 },
+      { type: TokenType.NUMBER, value: "1e10", start: 19, end: 23 },
+      { type: TokenType.RIGHT_BRACE, value: "}", start: 23, end: 24 }
     ]);
   });
 
@@ -65,13 +65,13 @@ describe("Tokenizer M1 Tests", () => {
     const tokenizer = new Tokenizer(input);
     const tokens = tokenizer.tokenize();
     expect(tokens).toEqual([
-      { type: TokenType.LEFT_BRACKET, value: "[" },
-      { type: TokenType.NUMBER, value: "1" },
-      { type: TokenType.COMMA, value: "," },
-      { type: TokenType.NUMBER, value: "2" },
-      { type: TokenType.COMMA, value: "," },
-      { type: TokenType.NUMBER, value: "3" },
-      { type: TokenType.RIGHT_BRACKET, value: "]" }
+      { type: TokenType.LEFT_BRACKET, value: "[", start: 0, end: 1 },
+      { type: TokenType.NUMBER, value: "1", start: 1, end: 2 },
+      { type: TokenType.COMMA, value: ",", start: 2, end: 3 },
+      { type: TokenType.NUMBER, value: "2", start: 4, end: 5 },
+      { type: TokenType.COMMA, value: ",", start: 5, end: 6 },
+      { type: TokenType.NUMBER, value: "3", start: 7, end: 8 },
+      { type: TokenType.RIGHT_BRACKET, value: "]", start: 8, end: 9 }
     ]);
   });
 
@@ -80,19 +80,19 @@ describe("Tokenizer M1 Tests", () => {
     const tokenizer = new Tokenizer(input);
     const tokens = tokenizer.tokenize();
     expect(tokens).toEqual([
-      { type: TokenType.LEFT_BRACE, value: "{" },
-      { type: TokenType.STRING, value: "truth" },
-      { type: TokenType.COLON, value: ":" },
-      { type: TokenType.TRUE, value: "true" },
-      { type: TokenType.COMMA, value: "," },
-      { type: TokenType.STRING, value: "lie" },
-      { type: TokenType.COLON, value: ":" },
-      { type: TokenType.FALSE, value: "false" },
-      { type: TokenType.COMMA, value: "," },
-      { type: TokenType.STRING, value: "nothing" },
-      { type: TokenType.COLON, value: ":" },
-      { type: TokenType.NULL, value: "null" },
-      { type: TokenType.RIGHT_BRACE, value: "}" }
+      { type: TokenType.LEFT_BRACE, value: "{", start: 0, end: 1 },
+      { type: TokenType.STRING, value: "truth", start: 1, end: 8 },
+      { type: TokenType.COLON, value: ":", start: 8, end: 9 },
+      { type: TokenType.TRUE, value: "true", start: 10, end: 14 },
+      { type: TokenType.COMMA, value: ",", start: 14, end: 15 },
+      { type: TokenType.STRING, value: "lie", start: 16, end: 21 },
+      { type: TokenType.COLON, value: ":", start: 21, end: 22 },
+      { type: TokenType.FALSE, value: "false", start: 23, end: 28 },
+      { type: TokenType.COMMA, value: ",", start: 28, end: 29 },
+      { type: TokenType.STRING, value: "nothing", start: 30, end: 39 },
+      { type: TokenType.COLON, value: ":", start: 39, end: 40 },
+      { type: TokenType.NULL, value: "null", start: 41, end: 45 },
+      { type: TokenType.RIGHT_BRACE, value: "}", start: 45, end: 46 }
     ]);
   });
 

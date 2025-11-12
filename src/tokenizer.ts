@@ -15,6 +15,31 @@ export enum TokenType {
   export interface Token {
     type: TokenType;
     value: string;
+    start: number; // Start position in original input
+    end: number;   // End position in original input
+  }
+
+  /** Calculate line and column from position */
+  export function getLineColumn(input: string, position: number): { line: number; column: number } {
+    let line = 1;
+    let column = 1;
+    
+    for (let i = 0; i < position && i < input.length; i++) {
+      if (input[i] === '\n') {
+        line++;
+        column = 1;
+      } else {
+        column++;
+      }
+    }
+    
+    return { line, column };
+  }
+
+  /** Format error message with line and column */
+  export function formatError(message: string, input: string, position: number): string {
+    const { line, column } = getLineColumn(input, position);
+    return `${message} at line ${line}, column ${column}`;
   }
   
   export class Tokenizer {
@@ -33,11 +58,13 @@ export enum TokenType {
     /** Advance pointer and return char, throw only if really needed */
     private advance(): string {
       const char = this.peek();
-      if (char === undefined) throw new SyntaxError("Unexpected end of input");
+      if (char === undefined) {
+        throw new SyntaxError(formatError("Unexpected end of input", this.input, this.position));
+      }
       this.position++;
       return char;
     }
-  
+
     private skipWhitespace(): void {
         let char = this.peek();
         while (char !== undefined && /\s/.test(char)) {
@@ -66,41 +93,87 @@ export enum TokenType {
 
         const tokenStartPos = this.position; // Track position after whitespace skip
         
+        let token: Token | null = null;
+        
         switch (char) {
-          case "{": tokens.push({ type: TokenType.LEFT_BRACE, value: this.advance() }); break;
-          case "}": tokens.push({ type: TokenType.RIGHT_BRACE, value: this.advance() }); break;
-          case "[": tokens.push({ type: TokenType.LEFT_BRACKET, value: this.advance() }); break;
-          case "]": tokens.push({ type: TokenType.RIGHT_BRACKET, value: this.advance() }); break;
-          case ":": tokens.push({ type: TokenType.COLON, value: this.advance() }); break;
-          case ",": tokens.push({ type: TokenType.COMMA, value: this.advance() }); break;
-          case '"': tokens.push({ type: TokenType.STRING, value: this.readString() }); break;
+          case "{": {
+            const start = this.position;
+            this.advance();
+            token = { type: TokenType.LEFT_BRACE, value: "{", start, end: this.position };
+            break;
+          }
+          case "}": {
+            const start = this.position;
+            this.advance();
+            token = { type: TokenType.RIGHT_BRACE, value: "}", start, end: this.position };
+            break;
+          }
+          case "[": {
+            const start = this.position;
+            this.advance();
+            token = { type: TokenType.LEFT_BRACKET, value: "[", start, end: this.position };
+            break;
+          }
+          case "]": {
+            const start = this.position;
+            this.advance();
+            token = { type: TokenType.RIGHT_BRACKET, value: "]", start, end: this.position };
+            break;
+          }
+          case ":": {
+            const start = this.position;
+            this.advance();
+            token = { type: TokenType.COLON, value: ":", start, end: this.position };
+            break;
+          }
+          case ",": {
+            const start = this.position;
+            this.advance();
+            token = { type: TokenType.COMMA, value: ",", start, end: this.position };
+            break;
+          }
+          case '"': {
+            const start = this.position;
+            const value = this.readString();
+            token = { type: TokenType.STRING, value, start, end: this.position };
+            break;
+          }
           default:
             if (this.isDigit(char) || char === "-") {
-              tokens.push({ type: TokenType.NUMBER, value: this.readNumber() });
+              const start = this.position;
+              const value = this.readNumber();
+              token = { type: TokenType.NUMBER, value, start, end: this.position };
             } else if (this.input.startsWith("true", this.position)) {
+              const start = this.position;
               this.position += 4;
-              tokens.push({ type: TokenType.TRUE, value: "true" });
+              token = { type: TokenType.TRUE, value: "true", start, end: this.position };
             } else if (this.input.startsWith("false", this.position)) {
+              const start = this.position;
               this.position += 5;
-              tokens.push({ type: TokenType.FALSE, value: "false" });
+              token = { type: TokenType.FALSE, value: "false", start, end: this.position };
             } else if (this.input.startsWith("null", this.position)) {
+              const start = this.position;
               this.position += 4;
-              tokens.push({ type: TokenType.NULL, value: "null" });
+              token = { type: TokenType.NULL, value: "null", start, end: this.position };
             } else {
-              throw new SyntaxError(`Unexpected character '${char}' at position ${this.position}`);
+              throw new SyntaxError(formatError(`Unexpected character '${char}'`, this.input, this.position));
             }
+        }
+        
+        if (token) {
+          tokens.push(token);
         }
         
         // Ensure we made progress (prevent infinite loops)
         if (this.position === tokenStartPos && this.position < this.input.length) {
-          throw new SyntaxError(`Failed to consume input at position ${this.position}`);
+          throw new SyntaxError(formatError("Failed to consume input", this.input, this.position));
         }
       }
 
       // After loop, ensure we consumed everything (allowing only trailing whitespace)
       const remaining = this.input.slice(this.position);
       if (remaining.trim().length > 0) {
-        throw new SyntaxError(`Unexpected token at position ${this.position}: "${remaining.substring(0, 10)}"`);
+        throw new SyntaxError(formatError(`Unexpected token: "${remaining.substring(0, 10)}"`, this.input, this.position));
       }
   
       return tokens;
@@ -109,6 +182,7 @@ export enum TokenType {
     private readString(): string {
       let str = "";
       this.advance(); // skip opening "
+      const stringStart = this.position - 1;
   
       while (true) {
         const char = this.advance();
@@ -129,22 +203,22 @@ export enum TokenType {
             case "u":
               const hex = this.input.slice(this.position, this.position + 4);
               if (!/^[0-9a-fA-F]{4}$/.test(hex)) {
-                throw new SyntaxError(`Invalid Unicode escape at position ${this.position - 2}`);
+                throw new SyntaxError(formatError(`Invalid Unicode escape`, this.input, this.position - 2));
               }
               str += String.fromCharCode(parseInt(hex, 16));
               this.position += 4;
               break;
             default:
-              throw new SyntaxError(`Invalid escape sequence \\${next} at position ${this.position - 1}`);
+              throw new SyntaxError(formatError(`Invalid escape sequence \\${next}`, this.input, this.position - 1));
           }
         } else if (/[\u0000-\u001F]/.test(char)) {
-          throw new SyntaxError(`Unescaped control character in string at position ${this.position - 1}`);
+          throw new SyntaxError(formatError(`Unescaped control character in string`, this.input, this.position - 1));
         } else {
           str += char;
         }
   
         if (this.position >= this.input.length) {
-          throw new SyntaxError("Unterminated string literal");
+          throw new SyntaxError(formatError("Unterminated string literal", this.input, stringStart));
         }
       }
     }
@@ -159,17 +233,21 @@ export enum TokenType {
       if (char === "0") {
         this.advance();
         char = this.peek();
-        if (this.isDigit(char)) throw new SyntaxError(`Leading zeros not allowed at position ${this.position}`);
+        if (this.isDigit(char)) {
+          throw new SyntaxError(formatError("Leading zeros not allowed", this.input, this.position));
+        }
       } else if (this.isDigit(char)) {
         while (this.isDigit(this.peek())) this.advance();
       } else {
-        throw new SyntaxError(`Invalid number start at position ${this.position}`);
+        throw new SyntaxError(formatError("Invalid number start", this.input, this.position));
       }
   
       char = this.peek();
       if (char === ".") {
         this.advance();
-        if (!this.isDigit(this.peek())) throw new SyntaxError(`Missing digits after '.' at ${this.position}`);
+        if (!this.isDigit(this.peek())) {
+          throw new SyntaxError(formatError("Missing digits after '.'", this.input, this.position));
+        }
         while (this.isDigit(this.peek())) this.advance();
       }
   
@@ -178,7 +256,9 @@ export enum TokenType {
         this.advance();
         char = this.peek();
         if (char && /[\+\-]/.test(char)) this.advance();
-        if (!this.isDigit(this.peek())) throw new SyntaxError(`Invalid exponent at ${this.position}`);
+        if (!this.isDigit(this.peek())) {
+          throw new SyntaxError(formatError("Invalid exponent", this.input, this.position));
+        }
         while (this.isDigit(this.peek())) this.advance();
       }
   

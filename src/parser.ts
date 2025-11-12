@@ -1,17 +1,34 @@
-import { Token, TokenType } from "./tokenizer";
+import { Token, TokenType, formatError, getLineColumn } from "./tokenizer";
 
 export class Parser {
   private tokens: Token[];
   private position = 0;
+  private input: string; // Store original input for error messages
 
-  constructor(tokens: Token[]) {
+  constructor(tokens: Token[], input: string) {
     this.tokens = tokens;
+    this.input = input;
+  }
+
+  /** Get position for error reporting */
+  private getErrorPosition(): number {
+    if (this.position < this.tokens.length) {
+      return this.tokens[this.position].start;
+    }
+    // If at end, use the last token's end position
+    if (this.tokens.length > 0) {
+      return this.tokens[this.tokens.length - 1].end;
+    }
+    return 0;
   }
 
   /** Peek safely */
   private peek(): Token {
     const token = this.tokens[this.position];
-    if (!token) throw new SyntaxError("Unexpected end of JSON input");
+    if (!token) {
+      const pos = this.getErrorPosition();
+      throw new SyntaxError(formatError("Unexpected end of JSON input", this.input, pos));
+    }
     return token;
   }
 
@@ -29,8 +46,9 @@ export class Parser {
     // must reach end of input
     if (this.position < this.tokens.length) {
       const next = this.tokens[this.position];
+      const pos = next.start;
       throw new SyntaxError(
-        `Unexpected token ${next.value ?? next.type} after JSON value`
+        formatError(`Unexpected token ${next.value ?? next.type} after JSON value`, this.input, pos)
       );
     }
 
@@ -40,7 +58,8 @@ export class Parser {
   /** Parse any JSON value */
   private parseValue(): any {
     if (this.position >= this.tokens.length) {
-      throw new SyntaxError("Unexpected end of JSON input");
+      const pos = this.getErrorPosition();
+      throw new SyntaxError(formatError("Unexpected end of JSON input", this.input, pos));
     }
 
     const token = this.peek();
@@ -68,9 +87,9 @@ export class Parser {
       case TokenType.COMMA:
       case TokenType.RIGHT_BRACE:
       case TokenType.RIGHT_BRACKET:
-        throw new SyntaxError(`Unexpected structural token ${token.type} where value expected`);
+        throw new SyntaxError(formatError(`Unexpected structural token ${token.type} where value expected`, this.input, token.start));
       default:
-        throw new SyntaxError(`Unexpected token: ${token.type}`);
+        throw new SyntaxError(formatError(`Unexpected token: ${token.type}`, this.input, token.start));
     }
   }
 
@@ -79,12 +98,12 @@ export class Parser {
     // must not allow leading zeros unless exactly "0"
     const numRegex = /^-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?$/;
     if (!numRegex.test(token.value)) {
-      throw new SyntaxError(`Invalid number: ${token.value}`);
+      throw new SyntaxError(formatError(`Invalid number: ${token.value}`, this.input, token.start));
     }
 
     const num = Number(token.value);
     if (!Number.isFinite(num)) {
-      throw new SyntaxError(`Number out of range: ${token.value}`);
+      throw new SyntaxError(formatError(`Number out of range: ${token.value}`, this.input, token.start));
     }
 
     return num;
@@ -93,15 +112,16 @@ export class Parser {
   /** Parse JSON object `{ ... }` */
   private parseObject(): Record<string, any> {
     const obj: Record<string, any> = {};
-    this.advance(); // skip '{'
+    const openBrace = this.advance(); // skip '{'
 
     if (this.position >= this.tokens.length) {
-      throw new SyntaxError("Unterminated object");
+      throw new SyntaxError(formatError("Unterminated object", this.input, openBrace.start));
     }
 
     // Check for leading comma
     if (this.peek().type === TokenType.COMMA) {
-      throw new SyntaxError("Unexpected comma at start of object");
+      const comma = this.peek();
+      throw new SyntaxError(formatError("Unexpected comma at start of object", this.input, comma.start));
     }
 
     if (this.peek().type === TokenType.RIGHT_BRACE) {
@@ -112,53 +132,54 @@ export class Parser {
     while (true) {
       const keyToken = this.peek();
       if (keyToken.type !== TokenType.STRING) {
-        throw new SyntaxError(`Expected string for key, got ${keyToken.type}`);
+        throw new SyntaxError(formatError(`Expected string for key, got ${keyToken.type}`, this.input, keyToken.start));
       }
 
       const key = this.advance().value;
 
       if (this.position >= this.tokens.length) {
-        throw new SyntaxError("Unterminated object after key");
+        throw new SyntaxError(formatError("Unterminated object after key", this.input, keyToken.end));
       }
 
       const colon = this.peek();
       if (colon.type !== TokenType.COLON) {
-        throw new SyntaxError("Expected ':' after key");
+        throw new SyntaxError(formatError("Expected ':' after key", this.input, colon.start));
       }
       this.advance(); // skip ':'
 
       // Check for double colon
       if (this.position < this.tokens.length && this.peek().type === TokenType.COLON) {
-        throw new SyntaxError("Unexpected colon after colon");
+        const nextColon = this.peek();
+        throw new SyntaxError(formatError("Unexpected colon after colon", this.input, nextColon.start));
       }
 
       const value = this.parseValue();
       obj[key] = value;
 
       if (this.position >= this.tokens.length) {
-        throw new SyntaxError("Unterminated object");
+        throw new SyntaxError(formatError("Unterminated object", this.input, openBrace.start));
       }
 
       const next = this.peek();
       if (next.type === TokenType.COMMA) {
         this.advance();
         if (this.position >= this.tokens.length) {
-          throw new SyntaxError("Trailing comma in object");
+          throw new SyntaxError(formatError("Trailing comma in object", this.input, next.end));
         }
         const afterComma = this.peek();
         // Check for double comma
         if (afterComma.type === TokenType.COMMA) {
-          throw new SyntaxError("Unexpected comma after comma");
+          throw new SyntaxError(formatError("Unexpected comma after comma", this.input, afterComma.start));
         }
         if (afterComma.type === TokenType.RIGHT_BRACE) {
-          throw new SyntaxError("Trailing comma in object is not allowed");
+          throw new SyntaxError(formatError("Trailing comma in object is not allowed", this.input, afterComma.start));
         }
       } else if (next.type === TokenType.RIGHT_BRACE) {
         this.advance();
         break;
       } else {
         // This catches extra values, missing commas, etc.
-        throw new SyntaxError(`Expected ',' or '}', got ${next.type}`);
+        throw new SyntaxError(formatError(`Expected ',' or '}', got ${next.type}`, this.input, next.start));
       }
     }
 
@@ -168,15 +189,16 @@ export class Parser {
   /** Parse JSON array `[ ... ]` */
   private parseArray(): any[] {
     const arr: any[] = [];
-    this.advance(); // skip '['
+    const openBracket = this.advance(); // skip '['
 
     if (this.position >= this.tokens.length) {
-      throw new SyntaxError("Unterminated array");
+      throw new SyntaxError(formatError("Unterminated array", this.input, openBracket.start));
     }
 
     // Check for leading comma
     if (this.peek().type === TokenType.COMMA) {
-      throw new SyntaxError("Unexpected comma at start of array");
+      const comma = this.peek();
+      throw new SyntaxError(formatError("Unexpected comma at start of array", this.input, comma.start));
     }
 
     if (this.peek().type === TokenType.RIGHT_BRACKET) {
@@ -188,28 +210,28 @@ export class Parser {
       arr.push(this.parseValue());
 
       if (this.position >= this.tokens.length) {
-        throw new SyntaxError("Unterminated array");
+        throw new SyntaxError(formatError("Unterminated array", this.input, openBracket.start));
       }
 
       const next = this.peek();
       if (next.type === TokenType.COMMA) {
         this.advance();
         if (this.position >= this.tokens.length) {
-          throw new SyntaxError("Trailing comma in array");
+          throw new SyntaxError(formatError("Trailing comma in array", this.input, next.end));
         }
         const afterComma = this.peek();
         // Check for double comma
         if (afterComma.type === TokenType.COMMA) {
-          throw new SyntaxError("Unexpected comma after comma");
+          throw new SyntaxError(formatError("Unexpected comma after comma", this.input, afterComma.start));
         }
         if (afterComma.type === TokenType.RIGHT_BRACKET) {
-          throw new SyntaxError("Trailing comma in array is not allowed");
+          throw new SyntaxError(formatError("Trailing comma in array is not allowed", this.input, afterComma.start));
         }
       } else if (next.type === TokenType.RIGHT_BRACKET) {
         this.advance();
         break;
       } else {
-        throw new SyntaxError(`Expected ',' or ']', got ${next.type}`);
+        throw new SyntaxError(formatError(`Expected ',' or ']', got ${next.type}`, this.input, next.start));
       }
     }
 

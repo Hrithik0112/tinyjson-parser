@@ -13,10 +13,10 @@ export function parseJSON(input: string): any {
 
   const trimmed = input.trim();
   if (trimmed === "") {
-    throw new SyntaxError("Unexpected end of JSON input");
+    throw new SyntaxError("Unexpected end of JSON input at line 1, column 1");
   }
 
   const tokens = new Tokenizer(trimmed).tokenize();
-  const parser = new Parser(tokens);
+  const parser = new Parser(tokens, trimmed);
   return parser.parse();
 }
