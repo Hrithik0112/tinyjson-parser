@@ -20,3 +20,6 @@ export function parseJSON(input: string): any {
   const parser = new Parser(tokens, trimmed);
   return parser.parse();
 }
+
+// Export streaming parser
+export { StreamingParser, parseJSONStream } from "./streaming-parser";
