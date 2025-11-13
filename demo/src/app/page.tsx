@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CodeBlock } from '@/components/code-block';
+import { InstallCommand } from "@/components/install-command";
 
 export default function Home() {
   return (
@@ -22,6 +23,12 @@ export default function Home() {
             <Link href="/docs" className="px-5 py-2.5 border border-black/20 text-black text-sm font-medium font-mono hover:bg-black/5 transition-colors">
               View Docs
             </Link>
+            {/* <a href="https://www.npmjs.com/package/tinyjson-parser" target="_blank" rel="noopener noreferrer" className="px-5 py-2.5 border border-black/20 text-black text-sm font-medium font-mono hover:bg-black/5 transition-colors">
+              npm
+            </a> */}
+          </div>
+          <div>
+            <InstallCommand/>
           </div>
         </div>
 

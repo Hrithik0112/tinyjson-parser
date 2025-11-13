@@ -24,6 +24,15 @@ export const fontMono = FontMono({
 export const metadata: Metadata = {
   title: "tinyjson-parser - Fast, minimal JSON parser",
   description: "A lightweight, performant JSON parser built for modern applications",
+  openGraph: {
+    title: "tinyjson-parser - Fast, minimal JSON parser",
+    description: "A lightweight, performant JSON parser built for modern applications",
+    images: [
+      {
+        url: "https://tinyjson-parser.vercel.app/json.svg",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({

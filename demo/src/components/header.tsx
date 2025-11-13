@@ -17,7 +17,7 @@ export function Header() {
             <Link href="/visualizer" className="text-sm text-black/60 hover:text-black transition-colors">
               Visualizer
             </Link>
-            <a href="#" className="text-sm text-black/60 hover:text-black transition-colors">
+            <a href="https://github.com/Hrithik0112/tinyjson-parser" target="_blank" rel="noopener noreferrer" className="text-sm text-black/60 hover:text-black transition-colors">
               GitHub
             </a>
           </nav>
