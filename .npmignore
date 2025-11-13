@@ -1,0 +1,33 @@
+# Source files
+src/
+tests/
+demo/
+
+# Development files
+*.test.ts
+*.test.js
+tsconfig.json
+vitest.config.*
+.prettierrc*
+.eslintrc*
+
+# Build artifacts (we only publish dist/)
+*.tsbuildinfo
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Misc
+node_modules/
+coverage/
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
