@@ -2,6 +2,8 @@
 
 A tiny, dependency-free JSON parser written in TypeScript. Built from scratch with a two-phase approach: tokenization and parsing.
 
+**🎮 [Try it in the Playground](https://tinyjson-parser.vercel.app/visualizer)** - Visualize tokenization steps and recursive parsing tree
+
 ## Features
 
 - 🚀 **Zero dependencies** - Pure TypeScript implementation
@@ -10,6 +12,7 @@ A tiny, dependency-free JSON parser written in TypeScript. Built from scratch wi
 - 🎯 **Detailed error messages** - Line and column information for debugging
 - 🌊 **Streaming support** - Parse large JSON files incrementally
 - 🔒 **Type-safe** - Full TypeScript support with type definitions
+- 🎮 **Interactive playground** - Visualize how the parser works
 
 ## How It Works
 
@@ -52,6 +55,8 @@ The parser enforces strict JSON rules: no trailing commas, no leading zeros, pro
 ```bash
 npm install tinyjson-parser
 ```
+
+**🎮 [Try the interactive playground](https://tinyjson-parser.vercel.app/visualizer)** to see the parser in action!
 
 ## Usage
 
